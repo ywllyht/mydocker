@@ -28,15 +28,6 @@ func main() {
         return nil
     }
     
-    //for i,arg := range os.Args {
-    //    log.Infof("i2=%d arg=%s", i, arg)
-    //    log.WithFields(log.Fields{
-    //      "i": i,
-    //      "arg":   arg,
-    //    }).Info("A group of input")
-    //
-    //}
-    
 
     if err := app.Run(os.Args); err != nil {
         log.Fatal(err)

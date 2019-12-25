@@ -27,6 +27,10 @@ func Run(tty bool, comArray []string, res *subsystems.ResourceConfig) {
 
     sendInitCommand(comArray, writePipe)
     parent.Wait()
+    mntURL := "/home/liangjie/myproject/golang/projects/mnt/"    //"/root/mnt/"
+    rootURL := "/home/liangjie/myproject/golang/projects/"       //"/root/"
+    container.DeleteWorkSpace(rootURL, mntURL)
+    os.Exit(0)
 }
 
 func sendInitCommand(comArray []string, writePipe *os.File) {

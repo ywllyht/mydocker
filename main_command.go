@@ -17,7 +17,11 @@ var runCommand = cli.Command{
             Name:  "ti",
             Usage: "enable tty",
         },
-                cli.StringFlag{
+        cli.BoolFlag{
+            Name:  "d",
+            Usage: "detach container",
+        },
+        cli.StringFlag{
             Name:  "v",
             Usage: "volume",
         },
@@ -33,6 +37,10 @@ var runCommand = cli.Command{
             Name: "cpuset",
             Usage: "cpuset limit",
         },
+        cli.StringFlag{
+            Name:  "name",
+            Usage: "container name",
+        },
     },
     Action: func(context *cli.Context) error {
         if len(context.Args()) < 1 {
@@ -42,7 +50,12 @@ var runCommand = cli.Command{
         for _, arg := range context.Args() {
             cmdArray = append(cmdArray, arg)
         }
-        tty := context.Bool("ti")
+        createTty := context.Bool("ti")
+        detach := context.Bool("d")
+
+        if createTty && detach {
+            return fmt.Errorf("ti and d paramter can not both provided")
+        }
         resConf := &subsystems.ResourceConfig{
             MemoryLimit: context.String("m"),
             CpuSet: context.String("cpuset"),
@@ -50,7 +63,9 @@ var runCommand = cli.Command{
         }
 
         volume := context.String("v")
-        Run(tty, cmdArray, resConf, volume)
+        log.Infof("createTty %v", createTty)
+        containerName := context.String("name")
+        Run(createTty, cmdArray, resConf, volume, containerName)
         return nil
     },
 }
@@ -75,6 +90,15 @@ var commitCommand = cli.Command{
         imageName := context.Args().Get(0)
         //commitContainer(containerName)
         commitContainer(imageName)
+        return nil
+    },
+}
+
+var listCommand = cli.Command{
+    Name:  "ps",
+    Usage: "list all the containers",
+    Action: func(context *cli.Context) error {
+        ListContainers()
         return nil
     },
 }

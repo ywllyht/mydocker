@@ -15,13 +15,13 @@ import (
 )
 
 
-func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume string, containerName string, imageName string) {
+func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume string, containerName string, imageName string, envSlice []string) {
     containerID := randStringBytes(10)
     if containerName == "" {
         containerName = containerID
     }
     
-    parent, writePipe := container.NewParentProcess(tty, volume, containerName, imageName)
+    parent, writePipe := container.NewParentProcess(tty, volume, containerName, imageName, envSlice)
     if parent == nil {
         log.Errorf("New parent process error")
         return

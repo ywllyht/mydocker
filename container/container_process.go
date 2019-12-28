@@ -31,7 +31,7 @@ type ContainerInfo struct {
     Volume      string `json:"volume"`     //容器的数据卷
 }
 
-func NewParentProcess(tty bool, volume string, containerName string, imageName string) (*exec.Cmd, *os.File) {
+func NewParentProcess(tty bool, volume string, containerName string, imageName string, envSlice []string) (*exec.Cmd, *os.File) {
     readPipe, writePipe, err := NewPipe()
     if err != nil {
         log.Errorf("New pipe error %v", err)
@@ -62,11 +62,8 @@ func NewParentProcess(tty bool, volume string, containerName string, imageName s
     }
     
     cmd.ExtraFiles = []*os.File{readPipe}
-    //mntURL := "/root/mnt"
-    //rootURL := "/root"
-    //mntURL := "/home/liangjie/myproject/golang/projects/mnt/"
-    //rootURL := "/home/liangjie/myproject/golang/projects/"
-    
+    cmd.Env = append(os.Environ(), envSlice...)
+
     NewWorkSpace(volume, imageName, containerName)
     cmd.Dir = fmt.Sprintf(MntUrl, containerName)
     return cmd, writePipe

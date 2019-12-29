@@ -4,6 +4,7 @@ import (
     "github.com/ywllyht/mydocker/container"
     "github.com/ywllyht/mydocker/cgroups/subsystems"
     "github.com/ywllyht/mydocker/cgroups"
+    "github.com/ywllyht/mydocker/network"
     log "github.com/sirupsen/logrus"
     "os"
     "strings"
@@ -15,7 +16,8 @@ import (
 )
 
 
-func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume string, containerName string, imageName string, envSlice []string) {
+func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume string, containerName string, imageName string, 
+    envSlice []string, nw string, portmapping []string) {
     containerID := randStringBytes(10)
     if containerName == "" {
         containerName = containerID
@@ -38,12 +40,27 @@ func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume str
     }
 
     
-    // use mydocker-cgroup as cgroup name
-    cgroupManager := cgroups.NewCgroupManager("mydocker-cgroup")
+    // use containerID as cgroup name
+    cgroupManager := cgroups.NewCgroupManager(containerID)
     defer cgroupManager.Destroy()
     cgroupManager.Set(res)
     cgroupManager.Apply(parent.Process.Pid)
 
+    if nw != "" {
+        // config container network
+        network.Init()
+        containerInfo := &container.ContainerInfo{
+            Id:          containerID,
+            Pid:         strconv.Itoa(parent.Process.Pid),
+            Name:        containerName,
+            PortMapping: portmapping,
+        }
+        if err := network.Connect(nw, containerInfo); err != nil {
+            log.Errorf("Error Connect Network %v", err)
+            return
+        }
+    }
+    
     sendInitCommand(comArray, writePipe)
     if tty {
         parent.Wait()
